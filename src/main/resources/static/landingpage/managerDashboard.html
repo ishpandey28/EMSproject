@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manager Dashboard</title>
+    <link rel="stylesheet" href="managerDashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Manager Dashboard</h2>
+        <ul>
+            <li><a href="#" id="viewEmployeesBtn"><i class="fas fa-users"></i> View All Employees</a></li>
+            <li><a href="#" id="viewManagersBtn"><i class="fas fa-user-tie"></i> View All Managers</a></li>
+            <li><a href="#" id="viewProjectsBtn"><i class="fas fa-project-diagram"></i> View All Projects</a></li>
+            <li><a href="#" id="filterEmployeesBtn"><i class="fas fa-filter"></i> Filter Employees</a></li>
+            <li><a href="#" id="requestEmployeesBtn"><i class="fas fa-envelope"></i> Request Employees</a></li>
+        </ul>
+    </div>
+    <div class="content">
+        <div class="topbar">
+            <button id="changePasswordBtn"><i class="fas fa-key"></i> Change Password</button>
+            <button id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+        <div class="main-content" id="mainContent">
+            <!-- Dynamic content will be loaded here -->
+        </div>
+    </div>
+    <script src="managerDashboard.js"></script>
+</body>
+</html>
