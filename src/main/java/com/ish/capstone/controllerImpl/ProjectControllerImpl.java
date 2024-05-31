@@ -3,6 +3,7 @@ package com.ish.capstone.controllerImpl;
 import com.ish.capstone.config.AppConfig;
 import com.ish.capstone.constants.AppConstants;
 import com.ish.capstone.controller.ProjectController;
+import com.ish.capstone.dto.ProjectDTO;
 import com.ish.capstone.entity.Project;
 import com.ish.capstone.service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,13 +33,8 @@ public class ProjectControllerImpl implements ProjectController {
     }
 
     @Override
-    public ResponseEntity<List<Project>> getAllProjects() {
-        try {
-            return projectService.getAllProjects();
-        } catch (Exception exception) {
-            exception.printStackTrace();
-        }
-        return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
+    public ResponseEntity<List<ProjectDTO>> getAllProjects() {
+        return projectService.getAllProjectDTOs();
     }
 
     @Override
@@ -70,14 +66,24 @@ public class ProjectControllerImpl implements ProjectController {
         }
         return AppConfig.getResponseEntity(AppConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
     @Override
-    public ResponseEntity<String> assignManagersToProject(@RequestBody Map<String, Object> requestMap) {
+    public ResponseEntity<String> assignProjectToEmployee(@RequestBody Map<String, Integer> requestMap) {
         try {
-            return projectService.assignManagersToProject(requestMap);
+            return projectService.assignProjectToEmployee(requestMap);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
         return AppConfig.getResponseEntity(AppConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @Override
+    public ResponseEntity<String> assignProjectToManager(@RequestBody Map<String, Integer> requestMap) {
+        try {
+            return projectService.assignProjectToManager(requestMap);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+        return AppConfig.getResponseEntity(AppConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+   
 }

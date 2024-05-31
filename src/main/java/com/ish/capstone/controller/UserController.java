@@ -8,32 +8,33 @@ import java.util.List;
 import java.util.Map;
 
 @RequestMapping("/user")
+@CrossOrigin(origins = "*")
 public interface UserController {
-    @CrossOrigin(origins = "http://localhost:5500")
+
     @PostMapping("/signup")
     public ResponseEntity<String> signUp(@RequestBody Map<String, String> requestMap);
-    @CrossOrigin(origins = "http://localhost:5500")
+
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody Map<String, String> requestMap);
-    @CrossOrigin(origins = "http://localhost:5500")
+
     @GetMapping("/get")
     public ResponseEntity<List<UserDTO>> getAllUsers();
-    @CrossOrigin(origins = "http://localhost:5500")
+
     @PostMapping("/updateStatus")
     public ResponseEntity<String> update(@RequestBody Map<String, String> requestMap);
-    @CrossOrigin(origins = "http://localhost:5500")
+
     @GetMapping("/check-token")
     public ResponseEntity<String> checkToken();
-    @CrossOrigin(origins = "http://localhost:5500")
+
     @PostMapping("/change-password")
     public ResponseEntity<String> changePassword(@RequestBody Map<String, String> requestMap);
-    @CrossOrigin(origins = "http://localhost:5500")
+
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestBody Map<String, String> requestMap);
-    @CrossOrigin(origins = "http://localhost:5500")
+    @CrossOrigin(origins = "*")
     @PutMapping("/update-details")
     public ResponseEntity<String> updateUserDetails(@RequestBody Map<String, String> requestMap);
-    @CrossOrigin(origins = "http://localhost:5500")
+
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable Integer id);
 

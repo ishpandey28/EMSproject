@@ -138,3 +138,30 @@ button.delete-btn:hover {
 .status-toggle {
     cursor: pointer;
 }
+button.accept-btn {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #28a745;
+    color: #fff;
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+button.accept-btn:hover {
+    background-color: #218838;
+}
+
+button.decline-btn {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #dc3545;
+    color: #fff;
+    cursor: pointer;
+}
+
+button.decline-btn:hover {
+    background-color: #c82333;
+}
+

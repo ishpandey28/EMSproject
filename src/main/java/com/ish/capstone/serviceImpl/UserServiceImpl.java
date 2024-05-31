@@ -31,52 +31,16 @@ import java.util.*;
 @RequiredArgsConstructor
 @Service
 public class UserServiceImpl implements UserService {
-    @Autowired
     private ManagerRepository managerRepository;
-    @Autowired
     private EmployeeRepository employeeRepository;
     @Autowired
     private UserRepository userRepository;
-    @Autowired
     private final AuthenticationManager authenticationManager;
-    @Autowired
     private final CustomerUsersDetailsService customerUsersDetailsService;
-    @Autowired
     private final JwtUtil jwtUtil;
-    @Autowired
     private final JwtFilter jwtFilter;
-    @Autowired
     private EmailConfig emailConfig;
 
-//    @Override
-//    public ResponseEntity<String> signup(Map<String, String> requestMap) {
-//        log.info("Inside signup {}", requestMap);
-//        try {
-//            if (this.validateSignUpMap(requestMap)) {
-//                User user = userRepository.findByEmailId(requestMap.get("email"));
-//                if (Objects.isNull(user)) {
-//                    User newUser = this.getUserFromMap(requestMap);
-//                    userRepository.save(newUser);
-//
-//                    String role = requestMap.get("role");
-//                    if ("employee".equalsIgnoreCase(role)) {
-//                        saveEmployee(newUser, requestMap);
-//                    } else if ("manager".equalsIgnoreCase(role)) {
-//                        saveManager(newUser, requestMap);
-//                    }
-//
-//                    return AppConfig.getResponseEntity("Successfully Registered", HttpStatus.OK);
-//                } else {
-//                    return AppConfig.getResponseEntity(AppConstants.EMAIL_EXISTS, HttpStatus.BAD_REQUEST);
-//                }
-//            } else {
-//                return AppConfig.getResponseEntity(AppConstants.INVALID_DATA, HttpStatus.BAD_REQUEST);
-//            }
-//        } catch (Exception exception) {
-//            exception.printStackTrace();
-//        }
-//        return AppConfig.getResponseEntity(AppConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
-//    }
 @Override
 public ResponseEntity<String> signup(Map<String, String> requestMap) {
     log.info("Inside signup {}", requestMap);
@@ -131,25 +95,7 @@ public ResponseEntity<String> signup(Map<String, String> requestMap) {
 
         return user;
     }
-//    private void saveEmployee(User user, Map<String, String> requestMap) {
-//        Employee employee = new Employee();
-//        employee.setUserId(user.getId());
-//        employee.setName(user.getName());
-//        employee.setContactNumber(user.getContactNumber());
-//        employee.setEmail(user.getEmail());
-//        employee.setDesignation(requestMap.get("designation"));
-//        employee.setProjectStatus("not assigned");
-//        employeeRepository.save(employee);
-//    }
-//    private void saveManager(User user, Map<String, String> requestMap) {
-//        Manager manager = new Manager();
-//        manager.setUserId(user.getId());
-//        manager.setName(user.getName());
-//        manager.setContactNumber(user.getContactNumber());
-//        manager.setEmail(user.getEmail());
-//        manager.setDesignation(requestMap.get("designation"));
-//        managerRepository.save(manager);
-//    }
+
     public ResponseEntity<String> login(Map<String, String> requestMap) {
         log.info("Inside login");
         try {
@@ -235,14 +181,22 @@ public ResponseEntity<String> signup(Map<String, String> requestMap) {
     public ResponseEntity<String> forgotPassword(Map<String, String> requestMap) {
         try {
             User user = userRepository.findByEmail(requestMap.get("email"));
-            if(!Objects.isNull(user) && !Strings.isNullOrEmpty(user.getEmail()))
-                emailConfig.forgotMail(user.getEmail(), "Credentials by Cafe Management System", user.getPassword());
-            return AppConfig.getResponseEntity("Check your email for credentials", HttpStatus.BAD_GATEWAY);
-        } catch (Exception exception){
-            exception.printStackTrace();
+            if (user != null && !Strings.isNullOrEmpty(user.getEmail())) {
+                try {
+                    emailConfig.forgotMail(user.getEmail(), "Credentials by NucleusTeq Employee Management System", user.getPassword());
+                    return AppConfig.getResponseEntity("Check your email for credentials", HttpStatus.OK);
+                } catch (javax.mail.MessagingException e) {
+                    log.error("Failed to send email", e);
+                    return AppConfig.getResponseEntity("Failed to send email", HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            }
+            return AppConfig.getResponseEntity("Email not found", HttpStatus.NOT_FOUND);
+        } catch (Exception exception) {
+            log.error("An error occurred", exception);
         }
         return AppConfig.getResponseEntity(AppConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
     @Override
     public ResponseEntity<String> updateUserDetails(Map<String, String> requestMap) {
         log.info("Inside updateUserDetails {}", requestMap);
@@ -260,6 +214,41 @@ public ResponseEntity<String> signup(Map<String, String> requestMap) {
                     if (requestMap.containsKey("email")) {
                         user.setEmail(requestMap.get("email"));
                     }
+
+                    // Update Employee if the user is an employee
+                    if ("employee".equalsIgnoreCase(user.getRole())) {
+                        Employee employee = user.getEmployee();
+                        if (employee != null) {
+                            if (requestMap.containsKey("name")) {
+                                employee.setName(requestMap.get("name"));
+                            }
+                            if (requestMap.containsKey("contactNumber")) {
+                                employee.setContactNumber(requestMap.get("contactNumber"));
+                            }
+                            if (requestMap.containsKey("email")) {
+                                employee.setEmail(requestMap.get("email"));
+                            }
+                            employeeRepository.save(employee); // Save employee details
+                        }
+                    }
+
+                    // Update Manager if the user is a manager
+                    if ("manager".equalsIgnoreCase(user.getRole())) {
+                        Manager manager = user.getManager();
+                        if (manager != null) {
+                            if (requestMap.containsKey("name")) {
+                                manager.setName(requestMap.get("name"));
+                            }
+                            if (requestMap.containsKey("contactNumber")) {
+                                manager.setContactNumber(requestMap.get("contactNumber"));
+                            }
+                            if (requestMap.containsKey("email")) {
+                                manager.setEmail(requestMap.get("email"));
+                            }
+                            managerRepository.save(manager); // Save manager details
+                        }
+                    }
+
                     userRepository.save(user);
                     return AppConfig.getResponseEntity("User details updated successfully", HttpStatus.OK);
                 } else {
@@ -274,27 +263,8 @@ public ResponseEntity<String> signup(Map<String, String> requestMap) {
         return AppConfig.getResponseEntity(AppConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-//    @Override
-//    public ResponseEntity<String> deleteUser(Integer id) {
-//        log.info("Inside deleteUser with id {}", id);
-//        try {
-//            if (jwtFilter.isAdmin()) {
-//                Optional<User> optionalUser = userRepository.findById(id);
-//                if (optionalUser.isPresent()) {
-//                    userRepository.deleteById(id);
-//                    return AppConfig.getResponseEntity("User deleted successfully", HttpStatus.OK);
-//                } else {
-//                    return AppConfig.getResponseEntity("User not found", HttpStatus.NOT_FOUND);
-//                }
-//            } else {
-//                return AppConfig.getResponseEntity(AppConstants.UNAUTHORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
-//            }
-//        } catch (Exception exception) {
-//            exception.printStackTrace();
-//        }
-//        return AppConfig.getResponseEntity(AppConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
-//    }
-@Override
+
+    @Override
 public ResponseEntity<String> deleteUser(Integer id) {
     log.info("Inside deleteUser with id {}", id);
     try {

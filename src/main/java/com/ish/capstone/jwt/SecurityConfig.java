@@ -75,6 +75,9 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -82,6 +85,9 @@ import org.springframework.web.cors.CorsConfiguration;
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final CustomerUsersDetailsService customerUsersDetailsService;
     private final JwtFilter jwtFilter;
+    @Autowired
+    private CorsConfigurationSource corsConfigurationSource;
+
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(customerUsersDetailsService);
@@ -98,7 +104,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.cors().configurationSource(request -> new CorsConfiguration().applyPermitDefaultValues())
+        http.cors().configurationSource(corsConfigurationSource)
                 .and()
                 .csrf().disable()
                 .authorizeRequests()

@@ -11,6 +11,7 @@ import javax.transaction.Transactional;
 import java.util.List;
 @Repository
 public interface UserRepository extends JpaRepository<User,Integer> {
+
     User findByEmailId(@Param("email") String email);
     List<UserDTO> getAllUser();
     List<String> getAllAdmin();

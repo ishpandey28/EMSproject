@@ -2,8 +2,11 @@ package com.ish.capstone.serviceImpl;
 
 import com.ish.capstone.config.AppConfig;
 import com.ish.capstone.constants.AppConstants;
+import com.ish.capstone.dto.ProjectDTO;
+import com.ish.capstone.entity.Employee;
 import com.ish.capstone.entity.Manager;
 import com.ish.capstone.entity.Project;
+import com.ish.capstone.repository.EmployeeRepository;
 import com.ish.capstone.repository.ManagerRepository;
 import com.ish.capstone.repository.ProjectRepository;
 import com.ish.capstone.service.ProjectService;
@@ -12,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.*;
 
 @Service
@@ -22,6 +26,9 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Autowired
     private ManagerRepository managerRepository;
+
+    @Autowired
+    private EmployeeRepository employeeRepository;
 
     @Override
     public ResponseEntity<String> addProject(Map<String, String> requestMap) {
@@ -37,16 +44,19 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public ResponseEntity<List<Project>> getAllProjects() {
+    @Transactional
+    public ResponseEntity<List<ProjectDTO>> getAllProjectDTOs() {
         try {
-            return new ResponseEntity<>(projectRepository.findAll(), HttpStatus.OK);
+            List<ProjectDTO> projects = projectRepository.findAllProjectDTOs();
+            return new ResponseEntity<>(projects, HttpStatus.OK);
         } catch (Exception exception) {
             exception.printStackTrace();
+            return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Override
+    @Transactional
     public ResponseEntity<Project> getProjectById(Map<String, Integer> requestMap) {
         try {
             Optional<Project> projectOptional = projectRepository.findById(requestMap.get("projectId"));
@@ -92,20 +102,52 @@ public class ProjectServiceImpl implements ProjectService {
         }
         return AppConfig.getResponseEntity(AppConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+    @Override
+    public ResponseEntity<String> assignProjectToEmployee(Map<String, Integer> requestMap) {
+        try {
+            Integer projectId = requestMap.get("projectId");
+            Integer empId = requestMap.get("empId");
+
+            Optional<Project> projectOptional = projectRepository.findById(projectId);
+            Optional<Employee> employeeOptional = employeeRepository.findById(empId);
+
+            if (projectOptional.isPresent() && employeeOptional.isPresent()) {
+                Project project = projectOptional.get();
+                Employee employee = employeeOptional.get();
+
+                employee.setProject(project);
+                employee.setAssigned(true);
+
+                employeeRepository.save(employee);
+                return AppConfig.getResponseEntity("Project assigned to employee successfully", HttpStatus.OK);
+            } else {
+                return AppConfig.getResponseEntity("Project or Employee not found", HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+        return AppConfig.getResponseEntity(AppConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
     @Override
-    public ResponseEntity<String> assignManagersToProject(Map<String, Object> requestMap) {
+    public ResponseEntity<String> assignProjectToManager(Map<String, Integer> requestMap) {
         try {
-            Optional<Project> projectOptional = projectRepository.findById((Integer) requestMap.get("projectId"));
-            if (projectOptional.isPresent()) {
+            Integer projectId = requestMap.get("projectId");
+            Integer mgrId = requestMap.get("mgrId");
+
+            Optional<Project> projectOptional = projectRepository.findById(projectId);
+            Optional<Manager> managerOptional = managerRepository.findById(mgrId);
+
+            if (projectOptional.isPresent() && managerOptional.isPresent()) {
                 Project project = projectOptional.get();
-                List<Integer> managerIds = (List<Integer>) requestMap.get("managerIds");
-                Set<Manager> managers = new HashSet<>(managerRepository.findAllById(managerIds));
-                project.setManagers(managers);
-                projectRepository.save(project);
-                return AppConfig.getResponseEntity("Managers assigned successfully", HttpStatus.OK);
+                Manager manager = managerOptional.get();
+
+                manager.getProjects().add(project);
+
+                managerRepository.save(manager);
+                return AppConfig.getResponseEntity("Project assigned to manager successfully", HttpStatus.OK);
             } else {
-                return AppConfig.getResponseEntity("Project not found", HttpStatus.NOT_FOUND);
+                return AppConfig.getResponseEntity("Project or Manager not found", HttpStatus.NOT_FOUND);
             }
         } catch (Exception exception) {
             exception.printStackTrace();
